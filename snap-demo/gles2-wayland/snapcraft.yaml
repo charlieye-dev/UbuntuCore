@@ -1,0 +1,33 @@
+name: gles2-demo
+version: 1.0
+summary: waylandgl snap
+description: A simple wayland opengl snap example
+confinement: strict
+grade: stable
+
+apps:
+  gles2-demo:
+    command: |
+      bash -c "mkdir -p $XDG_RUNTIME_DIR
+               ln -s $XDG_RUNTIME_DIR/../wayland-0 $XDG_RUNTIME_DIR/wayland-0
+                              $SNAP/bin/gles2-demo"
+    plugs:
+       - opengl 
+       - wayland
+    environment:
+      LIBGL_DRIVERS_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri
+ 
+parts:
+  waylandgl:
+    plugin: autotools
+    source: src
+    build-packages:
+       - gcc
+       - libc6-dev
+       - libegl1-mesa-dev
+       - libwayland-dev
+    stage-packages: 
+       - libegl1-mesa:armhf
+       - libgles1-mesa:armhf
+       - libwayland-client0:armhf
+       - libwayland-egl1-mesa:armhf

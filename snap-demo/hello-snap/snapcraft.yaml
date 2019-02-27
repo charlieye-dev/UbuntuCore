@@ -1,0 +1,19 @@
+name: hello-ros
+version: 1.0
+summary: hello ros
+description: A simple snap example
+confinement: devmode
+grade: devel
+
+apps:
+  hello-ros:
+    command: hello-ros
+
+architectures:
+  - build-on: amd64
+    run-on: armhf
+
+parts:
+  hello-ros:
+    plugin: autotools
+    source: src

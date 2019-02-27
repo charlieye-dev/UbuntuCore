@@ -1,0 +1,156 @@
+name: pulseaudio
+version: 8.0-4
+summary: PulseAudio sound server
+description: |
+  PulseAudio, previously known as Polypaudio, is a sound server for POSIX and
+  WIN32 systems. It is a drop in replacement for the ESD sound server with
+  much better latency, mixing/re-sampling quality and overall architecture.
+
+  Please find the source code for this snap at:
+  https://code.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/pulseaudio
+grade: stable
+confinement: strict
+
+apps:
+  pulseaudio:
+    command: bin/pulseaudio
+    daemon: simple
+    slots: [service]
+  pactl:
+    command: bin/client-wrapper usr/bin/pactl
+    plugs: [client, network]
+    # NOTE: This is deprecated with snapd 2.25 but needs to stay to
+    # guarantee all clients are updated correctly.
+    aliases: [pactl]
+  paplay:
+    command: bin/client-wrapper usr/bin/paplay
+    plugs: [client, home, network]
+    # NOTE: This is deprecated with snapd 2.25 but needs to stay to
+    # guarantee all clients are updated correctly.
+    aliases: [paplay]
+  parec:
+    command: bin/client-wrapper usr/bin/parec
+    plugs: [client, home, network]
+    # NOTE: This is deprecated with snapd 2.25 but needs to stay to
+    # guarantee all clients are updated correctly.
+    aliases: [parec]
+  config:
+    command: bin/config
+
+slots:
+  service:
+    interface: pulseaudio
+
+plugs:
+  client:
+    interface: pulseaudio
+
+parts:
+  pulseaudio-common:
+    plugin: copy
+    files:
+      bin/pulseaudio: bin/pulseaudio
+      bin/client-wrapper: bin/client-wrapper
+      bin/config: bin/config
+      data/copyright: usr/share/doc/pulseaudio/copyright
+
+  alsa-lib:
+    plugin: autotools
+
+    source: https://git.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/pulseaudio
+    source-type: git
+    source-branch: alsa-lib/xenial/1.1.0
+
+    configflags:
+      - --prefix=/usr
+      - --sysconfdir=/etc
+      - --libexec=/usr/lib
+      - --libdir=/usr/lib
+      - --localstatedir=/var
+      - --with-plugindir=/usr/lib/alsa-lib
+      - --disable-silent-rules
+      - --disable-static
+      - --disable-python
+
+    filesets:
+      libasound2:
+        - usr/lib/libasound.so*
+        - usr/lib/alsa-lib/*
+        - usr/share/alsa/*
+
+    snap:
+      - $libasound2
+
+
+  pulseaudio:
+    after:
+      - alsa-lib
+
+    plugin: autotools
+
+    source: https://git.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/pulseaudio
+    source-type: git
+    source-branch: pulseaudio/8.0
+
+    build-packages:
+      - intltool
+      - libasound2-dev
+      - libdbus-1-dev
+      - libjson-c-dev
+      - libglib2.0-dev
+      - libspeexdsp-dev
+      - libbluetooth-dev
+      - libwebrtc-audio-processing-dev
+      - libltdl-dev
+      - libsndfile1-dev
+      - libx11-xcb-dev
+      - libx11-dev
+      - libtdb-dev
+      - libudev-dev
+      - libasyncns-dev
+      - libxcb1-dev
+      - libsbc-dev
+
+    configflags:
+      - --prefix=/usr
+      - --sysconfdir=/etc
+      - --libexec=/usr/lib
+      - --libdir=/usr/lib
+      - --localstatedir=/var
+      - --enable-udev
+      - --disable-rpath
+      - --disable-orc
+      - --disable-gconf
+      - --disable-bluez4
+      - --disable-esound
+      - --disable-adrian-aec
+      - --disable-gtk3
+      - --disable-hal-compat
+      - --disable-systemd-login
+      - --without-caps
+      - --disable-webrtc-aec
+      - --disable-oss-output
+      - --disable-oss-wrapper
+      - --disable-jack
+      - --disable-x11
+      - --with-system-user=root
+      - --with-system-group=root
+
+    filesets:
+      wanted:
+        - etc/*
+        - lib/*
+        - usr/bin/pacat
+        - usr/bin/pactl
+        - usr/bin/paplay
+        - usr/bin/parec
+        - usr/bin/pulseaudio
+        - usr/lib/libpulse-mainloop-glib.so*
+        - usr/lib/libpulse-simple.so*
+        - usr/lib/libpulse.so*
+        - usr/lib/pulse-8.0/*
+        - usr/lib/pulseaudio/*.so
+        - usr/share/pulseaudio/*
+
+    snap:
+      - $wanted
